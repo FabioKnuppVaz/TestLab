@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: java-app
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+      - MAVEN_HOME=/usr/share/maven
+    restart: unless-stopped
