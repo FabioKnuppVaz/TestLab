@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("depto")
@@ -42,6 +43,15 @@ public class DeptoController {
     @DeleteMapping("deleteById")
     public void deleteById(@RequestParam(value = "nrDepto") Integer nrDepto) {
         deptoRepository.deleteById(nrDepto);
+    }
+
+    @PatchMapping("replaceById")
+    public void replaceById(DeptoDto deptoDto) {
+        Optional<Depto> deptoToReplace = deptoRepository.findById(deptoDto.getNrDepto());
+
+        if(!deptoToReplace.isEmpty()) {
+            deptoRepository.save(modelMapper.map(deptoDto, Depto.class));
+        }
     }
 
 }
