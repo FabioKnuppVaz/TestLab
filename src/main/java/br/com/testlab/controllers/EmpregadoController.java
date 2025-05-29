@@ -33,7 +33,7 @@ public class EmpregadoController {
     }
 
     @GetMapping("findById")
-    public EmpregadoDto findById(@RequestParam(value = "nrEmpregado") Integer nrEmpregado) {
+    public EmpregadoDto findById(@RequestParam Integer nrEmpregado) {
         Empregado empregado = empregadoRepository
                               .findById(nrEmpregado)
                               .get();
@@ -43,17 +43,22 @@ public class EmpregadoController {
     }
 
     @DeleteMapping("deleteById")
-    public void deleteById(@RequestParam(value = "nrEmpregado") Integer nrEmpregado) {
+    public void deleteById(@RequestParam Integer nrEmpregado) {
         empregadoRepository.deleteById(nrEmpregado);
     }
 
     @PatchMapping("replaceById")
-    public void replaceById(EmpregadoDto empregadoDto) {
+    public void replaceById(@RequestBody EmpregadoDto empregadoDto) {
         Optional<Empregado> empregadoToReplace = empregadoRepository.findById(empregadoDto.getNrEmpregado());
 
         if(!empregadoToReplace.isEmpty()) {
             empregadoRepository.save(modelMapper.map(empregadoDto, Empregado.class));
         }
+    }
+
+    @PutMapping("insert")
+    public void insert(@RequestBody EmpregadoDto empregadoDto) {
+        empregadoRepository.save(modelMapper.map(empregadoDto, Empregado.class));
     }
 
 }

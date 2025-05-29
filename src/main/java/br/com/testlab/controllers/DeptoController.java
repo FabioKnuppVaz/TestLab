@@ -1,7 +1,9 @@
 package br.com.testlab.controllers;
 
 import br.com.testlab.dtos.DeptoDto;
+import br.com.testlab.dtos.EmpregadoDto;
 import br.com.testlab.models.Depto;
+import br.com.testlab.models.Empregado;
 import br.com.testlab.repositories.DeptoRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +33,7 @@ public class DeptoController {
     }
 
     @GetMapping("findById")
-    public DeptoDto findById(@RequestParam(value = "nrDepto") Integer nrDepto) {
+    public DeptoDto findById(@RequestParam Integer nrDepto) {
         Depto depto = deptoRepository
                       .findById(nrDepto)
                       .get();
@@ -41,17 +43,22 @@ public class DeptoController {
     }
 
     @DeleteMapping("deleteById")
-    public void deleteById(@RequestParam(value = "nrDepto") Integer nrDepto) {
+    public void deleteById(@RequestParam Integer nrDepto) {
         deptoRepository.deleteById(nrDepto);
     }
 
     @PatchMapping("replaceById")
-    public void replaceById(DeptoDto deptoDto) {
+    public void replaceById(@RequestBody DeptoDto deptoDto) {
         Optional<Depto> deptoToReplace = deptoRepository.findById(deptoDto.getNrDepto());
 
         if(!deptoToReplace.isEmpty()) {
             deptoRepository.save(modelMapper.map(deptoDto, Depto.class));
         }
+    }
+
+    @PutMapping("insert")
+    public void insert(@RequestBody DeptoDto deptoDto) {
+        deptoRepository.save(modelMapper.map(deptoDto, Depto.class));
     }
 
 }
