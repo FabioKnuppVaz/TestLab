@@ -1,20 +1,14 @@
-FROM alpine:latest
-
-RUN apk add --no-cache \
-    openjdk17 \
-    maven \
-    bash
-
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk \
-    MAVEN_HOME=/usr/share/maven
+# Etapa 1: build da aplicação
+FROM maven:3.8.7-eclipse-temurin-17 AS builder
 
 WORKDIR /app
-
 COPY . .
-
 RUN mvn clean package -DskipTests
-RUN chmod +x /app/scripts/start.sh
 
-EXPOSE 8080
+# Etapa 2: imagem final leve com só o .jar
+FROM eclipse-temurin:17-jdk-alpine
 
-CMD ["/app/scripts/start.sh"]
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
+
+CMD ["java", "-jar", "app.jar"]

@@ -3,9 +3,6 @@ version: '3.8'
 services:
   app:
     image: testlab-image
-    build:
-      context: .
-      dockerfile: Dockerfile
     container_name: testlab-container
     ports:
       - "8080:8080"
@@ -13,5 +10,4 @@ services:
       - ./logs:/app/logs
     environment:
       - JAVA_HOME=/usr/lib/jvm/java-17-openjdk
-      - MAVEN_HOME=/usr/share/maven
     restart: unless-stopped
