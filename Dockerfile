@@ -1,14 +1,16 @@
-# Etapa 1: build da aplicação
-FROM maven:3.8.7-eclipse-temurin-17 AS builder
-
+FROM alpine:3.20 AS builder
+RUN apk add --no-cache openjdk17 maven
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk \
+    MAVEN_CONFIG=/root/.m2
 WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Etapa 2: imagem final leve com só o .jar
-FROM eclipse-temurin:17-jdk-alpine
 
+FROM alpine:3.20
+RUN apk add --no-cache openjdk17-jre
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk \
+    PATH="${JAVA_HOME}/bin:${PATH}"
 WORKDIR /app
 COPY --from=builder /app/target/*.jar app.jar
-
 CMD ["java", "-jar", "app.jar"]
