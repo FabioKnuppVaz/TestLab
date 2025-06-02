@@ -1,64 +1,85 @@
 package br.com.testlab.controllers;
 
-import br.com.testlab.dtos.DeptoDto;
 import br.com.testlab.dtos.EmpregadoDto;
-import br.com.testlab.models.Depto;
-import br.com.testlab.models.Empregado;
-import br.com.testlab.repositories.EmpregadoRepository;
-import org.modelmapper.ModelMapper;
+import br.com.testlab.services.EmpregadoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("empregado")
 public class EmpregadoController {
 
     @Autowired
-    EmpregadoRepository empregadoRepository;
-
-    @Autowired
-    ModelMapper modelMapper;
+    private EmpregadoService empregadoService;
 
     @GetMapping("all")
-    public List<EmpregadoDto> getAll() {
-        List<EmpregadoDto> empregadosDto = empregadoRepository
-                                           .findAll()
-                                           .stream()
-                                           .map(empregadoModel -> modelMapper.map(empregadoModel, EmpregadoDto.class))
-                                           .toList();
-        return empregadosDto;
+    public ResponseEntity<?> getAll() {
+        List<EmpregadoDto> empregadosDto;
+        try {
+            empregadosDto = empregadoService.findAll();
+            if (empregadosDto.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(empregadosDto, HttpStatus.OK);
     }
 
     @GetMapping("findById")
-    public EmpregadoDto findById(@RequestParam Integer nrEmpregado) {
-        Empregado empregado = empregadoRepository
-                              .findById(nrEmpregado)
-                              .get();
-
-        EmpregadoDto empregadoDto = modelMapper.map(empregado, EmpregadoDto.class);
-        return empregadoDto;
+    public ResponseEntity<?> findById(Integer nrEmpregado) {
+        EmpregadoDto empregadoDto;
+        try {
+            empregadoDto = empregadoService.findById(nrEmpregado);
+            if (empregadoDto == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(empregadoDto, HttpStatus.OK);
     }
 
     @DeleteMapping("deleteById")
-    public void deleteById(@RequestParam Integer nrEmpregado) {
-        empregadoRepository.deleteById(nrEmpregado);
+    public ResponseEntity<?> deleteById(Integer nrEmpregado) {
+        try {
+            empregadoService.deleteById(nrEmpregado);
+        } catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @PatchMapping("replaceById")
-    public void replaceById(@RequestBody EmpregadoDto empregadoDto) {
-        Optional<Empregado> empregadoToReplace = empregadoRepository.findById(empregadoDto.getNrEmpregado());
-
-        if(!empregadoToReplace.isEmpty()) {
-            empregadoRepository.save(modelMapper.map(empregadoDto, Empregado.class));
+    public ResponseEntity<?> replaceById(EmpregadoDto empregadoDto) {
+        try {
+            empregadoDto = empregadoService.findById(empregadoDto.getNrEmpregado());
+            if (empregadoDto == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            } else {
+                empregadoService.replaceById(empregadoDto);
+            }
+        } catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        return new ResponseEntity<>(empregadoDto, HttpStatus.OK);
     }
 
     @PutMapping("insert")
-    public void insert(@RequestBody EmpregadoDto empregadoDto) {
-        empregadoRepository.save(modelMapper.map(empregadoDto, Empregado.class));
+    public ResponseEntity<?> insert(EmpregadoDto empregadoDto) {
+        try {
+            empregadoService.insert(empregadoDto);
+            if (empregadoDto == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(empregadoDto, HttpStatus.CREATED);
     }
 
 }

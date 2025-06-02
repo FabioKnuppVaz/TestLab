@@ -15,4 +15,4 @@ mvn clean verify sonar:sonar ^
 -Dsonar.projectKey=TestLab ^  
 -Dsonar.projectName='TestLab' ^  
 -Dsonar.host.url=http://localhost:9000 ^  
--Dsonar.token=sqp_fe0f52347c3b2ac341490e806aa81066c279ebc3 test  
+-Dsonar.token=sqp_354e4a1832556d8a238bbca77ce10f1c809f60ba  

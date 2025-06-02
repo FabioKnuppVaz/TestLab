@@ -1,64 +1,85 @@
 package br.com.testlab.controllers;
 
 import br.com.testlab.dtos.DeptoDto;
-import br.com.testlab.dtos.EmpregadoDto;
-import br.com.testlab.models.Depto;
-import br.com.testlab.models.Empregado;
-import br.com.testlab.repositories.DeptoRepository;
-import org.modelmapper.ModelMapper;
+import br.com.testlab.services.DeptoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("depto")
 public class DeptoController {
 
     @Autowired
-    DeptoRepository deptoRepository;
-
-    @Autowired
-    ModelMapper modelMapper;
+    private DeptoService deptoService;
 
     @GetMapping("findAll")
-    public List<DeptoDto> findAll() {
-        List<DeptoDto> deptosDto = deptoRepository
-                                   .findAll()
-                                   .stream()
-                                   .map(deptoModel -> modelMapper.map(deptoModel, DeptoDto.class))
-                                   .toList();
-        return deptosDto;
+    public ResponseEntity<?> findAll() {
+        List<DeptoDto> deptosDto;
+        try {
+            deptosDto = deptoService.findAll();
+            if (deptosDto.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(deptosDto, HttpStatus.OK);
     }
 
     @GetMapping("findById")
-    public DeptoDto findById(@RequestParam Integer nrDepto) {
-        Depto depto = deptoRepository
-                      .findById(nrDepto)
-                      .get();
-
-        DeptoDto deptoDto = modelMapper.map(depto, DeptoDto.class);
-        return deptoDto;
+    public ResponseEntity<?> findById(@RequestParam Integer nrDepto) {
+        DeptoDto deptosDto;
+        try {
+            deptosDto = deptoService.findById(nrDepto);
+            if (deptosDto == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(deptosDto, HttpStatus.OK);
     }
 
     @DeleteMapping("deleteById")
-    public void deleteById(@RequestParam Integer nrDepto) {
-        deptoRepository.deleteById(nrDepto);
+    public ResponseEntity<?> deleteById(@RequestParam Integer nrDepto) {
+        try {
+            deptoService.deleteById(nrDepto);
+        } catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @PatchMapping("replaceById")
-    public void replaceById(@RequestBody DeptoDto deptoDto) {
-        Optional<Depto> deptoToReplace = deptoRepository.findById(deptoDto.getNrDepto());
-
-        if(!deptoToReplace.isEmpty()) {
-            deptoRepository.save(modelMapper.map(deptoDto, Depto.class));
+    public ResponseEntity<?> replaceById(@RequestBody DeptoDto deptoDto) {
+        try {
+            deptoDto = deptoService.findById(deptoDto.getNrDepto());
+            if (deptoDto == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            } else {
+                deptoDto = deptoService.replaceById(deptoDto);
+            }
+        } catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        return new ResponseEntity<>(deptoDto, HttpStatus.OK);
     }
 
     @PutMapping("insert")
-    public void insert(@RequestBody DeptoDto deptoDto) {
-        deptoRepository.save(modelMapper.map(deptoDto, Depto.class));
+    public ResponseEntity<?> insert(@RequestBody DeptoDto deptoDto) {
+        try {
+            deptoService.insert(deptoDto);
+            if (deptoDto == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(deptoDto, HttpStatus.CREATED);
     }
 
 }
