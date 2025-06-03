@@ -3,23 +3,21 @@ package br.com.testlab.services;
 import br.com.testlab.dtos.EmpregadoDto;
 import br.com.testlab.models.Empregado;
 import br.com.testlab.repositories.EmpregadoRepository;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.*;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
-public class EmpregadoServiceTest {
-
-    @InjectMocks
-    private EmpregadoService empregadoService;
+class EmpregadoServiceTest {
 
     @Mock
     private EmpregadoRepository empregadoRepository;
@@ -27,76 +25,93 @@ public class EmpregadoServiceTest {
     @Mock
     private ModelMapper modelMapper;
 
-    private Empregado empregado;
-    private EmpregadoDto empregadoDto;
+    @InjectMocks
+    private EmpregadoService empregadoService;
 
-    @Before
-    public void setUp() {
-        empregado = new Empregado();
-        empregado.setNrEmpregado(1);
-        empregado.setNmEmpregado("João");
-
-        empregadoDto = new EmpregadoDto();
-        empregadoDto.setNrEmpregado(1);
-        empregadoDto.setNmEmpregado("João");
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testFindAll() {
-        List<Empregado> empregados = Arrays.asList(empregado);
-        when(empregadoRepository.findAll()).thenReturn(empregados);
-        when(modelMapper.map(empregado, EmpregadoDto.class)).thenReturn(empregadoDto);
+    void testFindAll() {
+        Empregado e1 = new Empregado();
+        Empregado e2 = new Empregado();
+        EmpregadoDto dto1 = new EmpregadoDto();
+        EmpregadoDto dto2 = new EmpregadoDto();
+
+        when(empregadoRepository.findAll()).thenReturn(asList(e1, e2));
+        when(modelMapper.map(e1, EmpregadoDto.class)).thenReturn(dto1);
+        when(modelMapper.map(e2, EmpregadoDto.class)).thenReturn(dto2);
 
         List<EmpregadoDto> result = empregadoService.findAll();
 
-        assertEquals(1, result.size());
-        assertEquals(empregadoDto.getNrEmpregado(), result.get(0).getNrEmpregado());
+        assertEquals(2, result.size());
         verify(empregadoRepository).findAll();
     }
 
     @Test
-    public void testFindById() {
-        when(empregadoRepository.findById(1)).thenReturn(Optional.of(empregado));
-        when(modelMapper.map(empregado, EmpregadoDto.class)).thenReturn(empregadoDto);
+    void testFindById() {
+        int id = 1;
+        Empregado empregado = new Empregado();
+        EmpregadoDto dto = new EmpregadoDto();
 
-        EmpregadoDto result = empregadoService.findById(1);
+        when(empregadoRepository.findById(id)).thenReturn(Optional.of(empregado));
+        when(modelMapper.map(empregado, EmpregadoDto.class)).thenReturn(dto);
+
+        EmpregadoDto result = empregadoService.findById(id);
 
         assertNotNull(result);
-        assertEquals(empregadoDto.getNrEmpregado(), result.getNrEmpregado());
-        verify(empregadoRepository).findById(1);
+        assertEquals(dto, result);
     }
 
     @Test
-    public void testDeleteById() {
-        empregadoService.deleteById(1);
-        verify(empregadoRepository).deleteById(1);
+    void testDeleteById() {
+        int id = 1;
+
+        empregadoService.deleteById(id);
+
+        verify(empregadoRepository, times(1)).deleteById(id);
     }
 
     @Test
-    public void testReplaceByIdExists() {
-        when(empregadoRepository.findById(1)).thenReturn(Optional.of(empregado));
-        when(modelMapper.map(empregadoDto, Empregado.class)).thenReturn(empregado);
+    void testReplaceById_WhenExists() {
+        EmpregadoDto dto = new EmpregadoDto();
+        dto.setNrEmpregado(1);
+        Empregado empregado = new Empregado();
 
-        empregadoService.replaceById(empregadoDto);
+        when(empregadoRepository.findById(1)).thenReturn(Optional.of(new Empregado()));
+        when(modelMapper.map(dto, Empregado.class)).thenReturn(empregado);
+        when(empregadoRepository.save(empregado)).thenReturn(empregado);
+        when(modelMapper.map(empregado, EmpregadoDto.class)).thenReturn(dto);
 
-        verify(empregadoRepository).save(empregado);
+        EmpregadoDto result = empregadoService.replaceById(dto);
+
+        assertNotNull(result);
+        assertEquals(dto, result);
     }
 
     @Test
-    public void testReplaceByIdNotExists() {
+    void testReplaceById_WhenNotExists() {
+        EmpregadoDto dto = new EmpregadoDto();
+        dto.setNrEmpregado(1);
+
         when(empregadoRepository.findById(1)).thenReturn(Optional.empty());
 
-        empregadoService.replaceById(empregadoDto);
+        EmpregadoDto result = empregadoService.replaceById(dto);
 
-        verify(empregadoRepository, never()).save(any());
+        assertNull(result);
     }
 
     @Test
-    public void testInsert() {
-        when(modelMapper.map(empregadoDto, Empregado.class)).thenReturn(empregado);
+    void testInsert() {
+        EmpregadoDto dto = new EmpregadoDto();
+        Empregado empregado = new Empregado();
 
-        empregadoService.insert(empregadoDto);
+        when(modelMapper.map(dto, Empregado.class)).thenReturn(empregado);
 
-        verify(empregadoRepository).save(empregado);
+        empregadoService.insert(dto);
+
+        verify(empregadoRepository, times(1)).save(empregado);
     }
 }

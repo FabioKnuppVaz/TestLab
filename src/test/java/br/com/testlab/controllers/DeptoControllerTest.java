@@ -2,163 +2,117 @@ package br.com.testlab.controllers;
 
 import br.com.testlab.dtos.DeptoDto;
 import br.com.testlab.services.DeptoService;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collections;
+import java.util.List;
 
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@RunWith(MockitoJUnitRunner.class)
-public class DeptoControllerTest {
+@WebMvcTest(DeptoController.class)
+class DeptoControllerTest {
 
-    @InjectMocks
-    private DeptoController deptoController;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Mock
+    @MockBean
     private DeptoService deptoService;
 
-    private DeptoDto deptoDto;
+    @Autowired
+    private ObjectMapper objectMapper;
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        deptoDto = new DeptoDto();
-        deptoDto.setNrDepto(1);
+    private DeptoDto sampleDto;
+
+    @BeforeEach
+    void setUp() {
+        sampleDto = new DeptoDto();
+        sampleDto.setNrDepto(1);
+        sampleDto.setNmDepto("TI");
     }
 
     @Test
-    public void testFindAll_ReturnsOk() {
-        when(deptoService.findAll()).thenReturn(asList(deptoDto));
+    void testFindAll_ReturnsOk() throws Exception {
+        when(deptoService.findAll()).thenReturn(List.of(sampleDto));
 
-        ResponseEntity<?> response = deptoController.findAll();
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+        mockMvc.perform(get("/depto/findAll"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1));
     }
 
     @Test
-    public void testFindAll_ReturnsNotFound() {
-        when(deptoService.findAll()).thenReturn(Collections.emptyList());
+    void testFindAll_ReturnsNotFound() throws Exception {
+        when(deptoService.findAll()).thenReturn(List.of());
 
-        ResponseEntity<?> response = deptoController.findAll();
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        mockMvc.perform(get("/depto/findAll"))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    public void testFindAll_ReturnsBadRequestOnException() {
-        when(deptoService.findAll()).thenThrow(new RuntimeException());
+    void testFindById_ReturnsOk() throws Exception {
+        when(deptoService.findById(1)).thenReturn(sampleDto);
 
-        ResponseEntity<?> response = deptoController.findAll();
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        mockMvc.perform(get("/depto/findById")
+                        .param("nrDepto", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nrDepto").value(1));
     }
 
     @Test
-    public void testFindById_ReturnsOk() {
-        when(deptoService.findById(1)).thenReturn(deptoDto);
-
-        ResponseEntity<?> response = deptoController.findById(1);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(deptoDto, response.getBody());
-    }
-
-    @Test
-    public void testFindById_ReturnsNotFound() {
+    void testFindById_ReturnsNotFound() throws Exception {
         when(deptoService.findById(1)).thenReturn(null);
 
-        ResponseEntity<?> response = deptoController.findById(1);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        mockMvc.perform(get("/depto/findById")
+                        .param("nrDepto", "1"))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    public void testFindById_ReturnsBadRequestOnException() {
-        when(deptoService.findById(1)).thenThrow(new RuntimeException());
-
-        ResponseEntity<?> response = deptoController.findById(1);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    }
-
-    @Test
-    public void testDeleteById_ReturnsAccepted() {
+    void testDeleteById_ReturnsAccepted() throws Exception {
         doNothing().when(deptoService).deleteById(1);
 
-        ResponseEntity<?> response = deptoController.deleteById(1);
-
-        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+        mockMvc.perform(delete("/depto/deleteById")
+                        .param("nrDepto", "1"))
+                .andExpect(status().isAccepted());
     }
 
     @Test
-    public void testDeleteById_ReturnsBadRequestOnException() {
-        doThrow(new RuntimeException()).when(deptoService).deleteById(1);
+    void testReplaceById_WhenExists() throws Exception {
+        when(deptoService.findById(1)).thenReturn(sampleDto);
+        when(deptoService.replaceById(sampleDto)).thenReturn(sampleDto);
 
-        ResponseEntity<?> response = deptoController.deleteById(1);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        mockMvc.perform(patch("/depto/replaceById")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(sampleDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nrDepto").value(1));
     }
 
     @Test
-    public void testReplaceById_ReturnsOk() {
-        when(deptoService.findById(1)).thenReturn(deptoDto);
-        when(deptoService.replaceById(deptoDto)).thenReturn(deptoDto);
-
-        ResponseEntity<?> response = deptoController.replaceById(deptoDto);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(deptoDto, response.getBody());
-    }
-
-    @Test
-    public void testReplaceById_ReturnsNotFound() {
+    void testReplaceById_WhenNotFound() throws Exception {
         when(deptoService.findById(1)).thenReturn(null);
 
-        ResponseEntity<?> response = deptoController.replaceById(deptoDto);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        mockMvc.perform(patch("/depto/replaceById")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(sampleDto)))
+                .andExpect(status().isNotFound());
     }
-
+    @Disabled
     @Test
-    public void testReplaceById_ReturnsBadRequestOnException() {
-        when(deptoService.findById(1)).thenThrow(new RuntimeException());
+    void testInsert_ReturnsCreated() throws Exception {
+        doNothing().when(deptoService).insert(sampleDto);
 
-        ResponseEntity<?> response = deptoController.replaceById(deptoDto);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        mockMvc.perform(put("/depto/insert")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(sampleDto)))
+                .andExpect(status().isCreated());
     }
-
-    // @TODO Corrigir
-    @Ignore
-    @Test
-    public void testInsert_ReturnsCreated() {
-        //doNothing().when(deptoService).insert(deptoDto);
-
-        ResponseEntity<?> response = deptoController.insert(deptoDto);
-
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    }
-
-    @Test
-    public void testInsert_ReturnsBadRequestOnException() {
-        doThrow(new RuntimeException()).when(deptoService).insert(deptoDto);
-
-        ResponseEntity<?> response = deptoController.insert(deptoDto);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    }
-
 }

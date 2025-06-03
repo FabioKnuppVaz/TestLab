@@ -3,25 +3,21 @@ package br.com.testlab.services;
 import br.com.testlab.dtos.DeptoDto;
 import br.com.testlab.models.Depto;
 import br.com.testlab.repositories.DeptoRepository;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
-public class DeptoServiceTest {
+class DeptoServiceTest {
 
     @Mock
     private DeptoRepository deptoRepository;
@@ -32,13 +28,13 @@ public class DeptoServiceTest {
     @InjectMocks
     private DeptoService deptoService;
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void testFindAll() {
+    void testFindAll() {
         Depto depto1 = new Depto();
         Depto depto2 = new Depto();
         DeptoDto dto1 = new DeptoDto();
@@ -51,10 +47,11 @@ public class DeptoServiceTest {
         List<DeptoDto> result = deptoService.findAll();
 
         assertEquals(2, result.size());
+        verify(deptoRepository).findAll();
     }
 
     @Test
-    public void testFindById() {
+    void testFindById() {
         int id = 1;
         Depto depto = new Depto();
         DeptoDto dto = new DeptoDto();
@@ -64,11 +61,12 @@ public class DeptoServiceTest {
 
         DeptoDto result = deptoService.findById(id);
 
+        assertNotNull(result);
         assertEquals(dto, result);
     }
 
     @Test
-    public void testDeleteById() {
+    void testDeleteById() {
         int id = 1;
 
         deptoService.deleteById(id);
@@ -77,27 +75,30 @@ public class DeptoServiceTest {
     }
 
     @Test
-    public void testReplaceByIdWhenExists() {
+    void testReplaceById_WhenExists() {
+        int id = 1;
         DeptoDto dto = new DeptoDto();
-        dto.setNrDepto(1);
+        dto.setNrDepto(id);
         Depto depto = new Depto();
 
-        when(deptoRepository.findById(1)).thenReturn(Optional.of(depto));
+        when(deptoRepository.findById(id)).thenReturn(Optional.of(depto));
         when(modelMapper.map(dto, Depto.class)).thenReturn(depto);
         when(deptoRepository.save(depto)).thenReturn(depto);
         when(modelMapper.map(depto, DeptoDto.class)).thenReturn(dto);
 
         DeptoDto result = deptoService.replaceById(dto);
 
+        assertNotNull(result);
         assertEquals(dto, result);
     }
 
     @Test
-    public void testReplaceByIdWhenNotExists() {
+    void testReplaceById_WhenNotExists() {
+        int id = 1;
         DeptoDto dto = new DeptoDto();
-        dto.setNrDepto(1);
+        dto.setNrDepto(id);
 
-        when(deptoRepository.findById(1)).thenReturn(Optional.empty());
+        when(deptoRepository.findById(id)).thenReturn(Optional.empty());
 
         DeptoDto result = deptoService.replaceById(dto);
 
@@ -105,7 +106,7 @@ public class DeptoServiceTest {
     }
 
     @Test
-    public void testInsert() {
+    void testInsert() {
         DeptoDto dto = new DeptoDto();
         Depto depto = new Depto();
 
@@ -115,7 +116,7 @@ public class DeptoServiceTest {
 
         DeptoDto result = deptoService.insert(dto);
 
+        assertNotNull(result);
         assertEquals(dto, result);
     }
-
 }

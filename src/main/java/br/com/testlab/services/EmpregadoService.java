@@ -41,12 +41,15 @@ public class EmpregadoService {
         empregadoRepository.deleteById(nrEmpregado);
     }
 
-    public void replaceById(EmpregadoDto empregadoDto) {
+    public EmpregadoDto replaceById(EmpregadoDto empregadoDto) {
         Optional<Empregado> empregadoToReplace = empregadoRepository.findById(empregadoDto.getNrEmpregado());
 
+        Empregado empregado = null;
         if(!empregadoToReplace.isEmpty()) {
-            empregadoRepository.save(modelMapper.map(empregadoDto, Empregado.class));
+            empregado = empregadoRepository.save(modelMapper.map(empregadoDto, Empregado.class));
         }
+
+        return modelMapper.map(empregado, EmpregadoDto.class);
     }
 
     public void insert(EmpregadoDto empregadoDto) {
