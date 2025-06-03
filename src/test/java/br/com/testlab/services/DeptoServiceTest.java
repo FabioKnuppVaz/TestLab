@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -43,7 +44,7 @@ public class DeptoServiceTest {
         DeptoDto dto1 = new DeptoDto();
         DeptoDto dto2 = new DeptoDto();
 
-        when(deptoRepository.findAll()).thenReturn(Arrays.asList(depto1, depto2));
+        when(deptoRepository.findAll()).thenReturn(asList(depto1, depto2));
         when(modelMapper.map(depto1, DeptoDto.class)).thenReturn(dto1);
         when(modelMapper.map(depto2, DeptoDto.class)).thenReturn(dto2);
 

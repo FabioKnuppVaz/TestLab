@@ -52,7 +52,9 @@ public class DeptoService {
     }
 
     public DeptoDto insert(DeptoDto deptoDto) {
-        Depto depto = deptoRepository.save(modelMapper.map(deptoDto, Depto.class));
+        deptoDto.setNrDepto(null);
+        Depto depto = modelMapper.map(deptoDto, Depto.class);
+        deptoRepository.save(depto);
         return modelMapper.map(depto, DeptoDto.class);
     }
 
