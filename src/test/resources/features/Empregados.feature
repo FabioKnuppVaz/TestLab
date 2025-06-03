@@ -6,3 +6,11 @@ Funcionalidade: Empregados
   @BUSCAR_TODOS
   Cenario: Buscar todos empregados
     Entao validar a busca de todos empregados
+
+  @BUSCAR_POR_ID
+  Cenario: Buscar empregado por id
+    Entao validar a busca do empregado
+
+  @DELETAR_POR_ID
+  Cenario: Deletar empregado por id
+    Entao validar a delecao do empregado

@@ -12,7 +12,7 @@ import io.cucumber.junit.CucumberOptions.SnippetType;
     features = "classpath:features",
     extraGlue = "classpath:steps",
     snippets = SnippetType.CAMELCASE,
-    tags = ""
+    tags = "@DELETAR_POR_ID"
 )
 public class RunTest {
 }
