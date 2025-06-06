@@ -14,3 +14,11 @@ Funcionalidade: Empregados
   @DELETAR_POR_ID
   Cenario: Deletar empregado por id
     Entao validar a delecao do empregado
+
+  @ALTERAR
+  Cenario: Alterar empregado
+    Entao validar a alteracao do empregado
+
+  @INSERIR
+  Cenario: Inserir empregado
+    Entao validar a insercao do empregado

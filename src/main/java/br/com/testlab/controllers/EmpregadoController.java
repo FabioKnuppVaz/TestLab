@@ -2,6 +2,7 @@ package br.com.testlab.controllers;
 
 import br.com.testlab.dtos.EmpregadoDto;
 import br.com.testlab.services.EmpregadoService;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Log4j2
 @RestController
 @RequestMapping("empregado")
 public class EmpregadoController {
@@ -17,7 +19,7 @@ public class EmpregadoController {
     private EmpregadoService empregadoService;
 
     @GetMapping("all")
-    public ResponseEntity<?> getAll() {
+    public ResponseEntity getAll() {
         List<EmpregadoDto> empregadosDto;
         try {
             empregadosDto = empregadoService.findAll();
@@ -25,13 +27,14 @@ public class EmpregadoController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         } catch(Exception e) {
+            log.error("Erro ao retornar todos empregados: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(empregadosDto, HttpStatus.OK);
     }
 
     @GetMapping("findById")
-    public ResponseEntity<?> findById(Integer nrEmpregado) {
+    public ResponseEntity findById(@RequestParam Integer nrEmpregado) {
         EmpregadoDto empregadoDto;
         try {
             empregadoDto = empregadoService.findById(nrEmpregado);
@@ -39,23 +42,25 @@ public class EmpregadoController {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         } catch(Exception e) {
+            log.error("Erro ao procurar empregado: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(empregadoDto, HttpStatus.OK);
     }
 
     @DeleteMapping("deleteById")
-    public ResponseEntity<?> deleteById(Integer nrEmpregado) {
+    public ResponseEntity deleteById(@RequestParam Integer nrEmpregado) {
         try {
             empregadoService.deleteById(nrEmpregado);
         } catch(Exception e) {
+            log.error("Erro ao deletar empregado: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @PatchMapping("replaceById")
-    public ResponseEntity<?> replaceById(EmpregadoDto empregadoDto) {
+    public ResponseEntity replaceById(@RequestBody EmpregadoDto empregadoDto) {
         try {
             empregadoDto = empregadoService.findById(empregadoDto.getNrEmpregado());
             if (empregadoDto == null) {
@@ -64,19 +69,21 @@ public class EmpregadoController {
                 empregadoService.replaceById(empregadoDto);
             }
         } catch(Exception e) {
+            log.error("Erro ao modificar empregado: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(empregadoDto, HttpStatus.OK);
     }
 
-    @PutMapping("insert")
-    public ResponseEntity<?> insert(EmpregadoDto empregadoDto) {
+    @PostMapping("insert")
+    public ResponseEntity insert(@RequestBody EmpregadoDto empregadoDto) {
         try {
             empregadoService.insert(empregadoDto);
             if (empregadoDto == null) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
         } catch(Exception e) {
+            log.error("Erro ao inserir empregado: " + e.getMessage());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(empregadoDto, HttpStatus.CREATED);

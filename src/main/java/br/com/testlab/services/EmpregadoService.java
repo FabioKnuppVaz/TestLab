@@ -1,5 +1,6 @@
 package br.com.testlab.services;
 
+import br.com.testlab.dtos.DeptoDto;
 import br.com.testlab.dtos.EmpregadoDto;
 import br.com.testlab.models.Empregado;
 import br.com.testlab.repositories.EmpregadoRepository;
@@ -52,8 +53,11 @@ public class EmpregadoService {
         return modelMapper.map(empregado, EmpregadoDto.class);
     }
 
-    public void insert(EmpregadoDto empregadoDto) {
-        empregadoRepository.save(modelMapper.map(empregadoDto, Empregado.class));
+    public DeptoDto insert(EmpregadoDto empregadoDto) {
+        empregadoDto.setNrEmpregado(null);
+        Empregado empregado = modelMapper.map(empregadoDto, Empregado.class);
+        empregadoRepository.save(empregado);
+        return modelMapper.map(empregado, DeptoDto.class);
     }
 
 }
