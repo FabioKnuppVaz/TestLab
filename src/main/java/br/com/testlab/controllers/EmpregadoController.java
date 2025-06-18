@@ -1,92 +1,114 @@
 package br.com.testlab.controllers;
 
+import br.com.testlab.dtos.DeptoDto;
 import br.com.testlab.dtos.EmpregadoDto;
-import br.com.testlab.services.EmpregadoService;
+import br.com.testlab.models.Empregado;
+import br.com.testlab.repositories.EmpregadoRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Log4j2
 @RestController
 @RequestMapping("empregado")
+@Transactional
+@Tag(name = "Empregados", description = "Gerenciamento de empregados")
 public class EmpregadoController {
 
     @Autowired
-    private EmpregadoService empregadoService;
+    private EmpregadoRepository empregadoRepository;
 
-    @GetMapping("all")
-    public ResponseEntity getAll() {
-        List<EmpregadoDto> empregadosDto;
+    @Autowired
+    private ModelMapper modelMapper;
+
+    @Operation(summary = "Buscar todos empregados")
+    @GetMapping("findAll")
+    public ResponseEntity findAll() {
         try {
-            empregadosDto = empregadoService.findAll();
-            if (empregadosDto.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        } catch(Exception e) {
-            log.error("Erro ao retornar todos empregados: " + e.getMessage());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            List<EmpregadoDto> response = empregadoRepository.findAll().stream().map(record -> {
+                                              EmpregadoDto empregadoDto = modelMapper.map(record, EmpregadoDto.class);
+                                              return empregadoDto;
+                                          }).collect(Collectors.toList());
+            return ResponseEntity.ok().body(response);
+        } catch(Exception exception) {
+            return ResponseEntity.internalServerError().build();
         }
-        return new ResponseEntity<>(empregadosDto, HttpStatus.OK);
     }
 
-    @GetMapping("findById")
-    public ResponseEntity findById(@RequestParam Integer nrEmpregado) {
-        EmpregadoDto empregadoDto;
+    @Operation(summary = "Cadastrar um empregado")
+    @PostMapping("create")
+    public ResponseEntity create(@RequestBody EmpregadoDto empregadoDto) {
         try {
-            empregadoDto = empregadoService.findById(nrEmpregado);
-            if (empregadoDto == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        } catch(Exception e) {
-            log.error("Erro ao procurar empregado: " + e.getMessage());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            Empregado empregado = modelMapper.map(empregadoDto, Empregado.class);
+            empregadoRepository.save(empregado);
+            modelMapper.map(empregado, EmpregadoDto.class);
+            return ResponseEntity.ok().body(empregadoDto);
+        } catch(Exception exception) {
+            return ResponseEntity.internalServerError().build();
         }
-        return new ResponseEntity<>(empregadoDto, HttpStatus.OK);
     }
 
-    @DeleteMapping("deleteById")
-    public ResponseEntity deleteById(@RequestParam Integer nrEmpregado) {
+    @Operation(summary = "Buscar um empregado")
+    @GetMapping("read")
+    public ResponseEntity read(@RequestParam Integer nrEmpregado) {
         try {
-            empregadoService.deleteById(nrEmpregado);
-        } catch(Exception e) {
-            log.error("Erro ao deletar empregado: " + e.getMessage());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        return empregadoRepository.findByNrEmpregado(nrEmpregado)
+               .map(record -> {
+                   EmpregadoDto empregadoDto = modelMapper.map(record, EmpregadoDto.class);
+                   return ResponseEntity.ok().body(empregadoDto);
+               })
+               .orElse(ResponseEntity.notFound().build());
+        } catch(Exception exception) {
+            return ResponseEntity.internalServerError().build();
         }
-        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
-    @PatchMapping("replaceById")
-    public ResponseEntity replaceById(@RequestBody EmpregadoDto empregadoDto) {
+    @Operation(summary = "Atualizar um empregado")
+    @PutMapping("update")
+    public ResponseEntity update(@RequestBody EmpregadoDto empregadoDto) {
         try {
-            empregadoDto = empregadoService.findById(empregadoDto.getNrEmpregado());
-            if (empregadoDto == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            } else {
-                empregadoService.replaceById(empregadoDto);
-            }
-        } catch(Exception e) {
-            log.error("Erro ao modificar empregado: " + e.getMessage());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return empregadoRepository.findByNrEmpregado(empregadoDto.getNrEmpregado())
+                   .map(record -> {
+                       modelMapper.map(empregadoDto, Empregado.class);
+
+                       record.setNrEmpregado(empregadoDto.getNrEmpregado());
+                       record.setDsCargo(empregadoDto.getDsCargo());
+                       record.setNrGerente(empregadoDto.getNrGerente());
+                       record.setDtAdmissao(empregadoDto.getDtAdmissao());
+                       record.setVlComissao(empregadoDto.getVlComissao());
+                       record.setVlSalario(empregadoDto.getVlSalario());
+                       record.setNmEmpregado(empregadoDto.getNmEmpregado());
+
+                       Empregado empregado = modelMapper.map(record, Empregado.class);
+                       empregadoRepository.save(empregado);
+
+                       return ResponseEntity.ok().body(empregadoDto);
+                   }).orElse(ResponseEntity.notFound().build());
+        } catch(Exception exception) {
+            return ResponseEntity.internalServerError().build();
         }
-        return new ResponseEntity<>(empregadoDto, HttpStatus.OK);
     }
 
-    @PostMapping("insert")
-    public ResponseEntity insert(@RequestBody EmpregadoDto empregadoDto) {
+    @Operation(summary = "Deletar um empregado")
+    @DeleteMapping("delete")
+    public ResponseEntity delete(@RequestParam Integer nrEmpregado) {
         try {
-            empregadoService.insert(empregadoDto);
-            if (empregadoDto == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        } catch(Exception e) {
-            log.error("Erro ao inserir empregado: " + e.getMessage());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return empregadoRepository.findByNrEmpregado(nrEmpregado)
+                   .map(record -> {
+                       empregadoRepository.deleteByNrEmpregado(nrEmpregado);
+                       return ResponseEntity.ok().build();
+                   }).orElse(ResponseEntity.notFound().build());
+        } catch(Exception exception) {
+            return ResponseEntity.internalServerError().build();
         }
-        return new ResponseEntity<>(empregadoDto, HttpStatus.CREATED);
     }
 
 }

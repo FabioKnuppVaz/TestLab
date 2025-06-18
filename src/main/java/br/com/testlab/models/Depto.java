@@ -4,14 +4,19 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Depto {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	Integer nrDepto;
 	String nmDepto;
 	String dsLocal;

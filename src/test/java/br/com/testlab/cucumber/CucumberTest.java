@@ -1,9 +1,11 @@
-package br.com.testlab;
+package br.com.testlab.cucumber;
 
 import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;
+import io.cucumber.spring.CucumberContextConfiguration;
 import org.junit.runner.RunWith;
 import io.cucumber.junit.CucumberOptions.SnippetType;
+import org.springframework.boot.test.context.SpringBootTest;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(
@@ -14,5 +16,7 @@ import io.cucumber.junit.CucumberOptions.SnippetType;
     snippets = SnippetType.CAMELCASE,
     tags = ""
 )
-public class RunTest {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@CucumberContextConfiguration
+public class CucumberTest  {
 }

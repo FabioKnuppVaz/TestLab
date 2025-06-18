@@ -1,140 +1,139 @@
 package br.com.testlab.controllers;
 
 import br.com.testlab.dtos.EmpregadoDto;
-import br.com.testlab.services.EmpregadoService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import br.com.testlab.models.Empregado;
+import br.com.testlab.repositories.EmpregadoRepository;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.http.HttpStatus.*;
 
-@WebMvcTest(EmpregadoController.class)
-class EmpregadoControllerTest {
+@RunWith(MockitoJUnitRunner.class)
+public class EmpregadoControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @InjectMocks
+    private EmpregadoController empregadoController;
 
-    @MockBean
-    private EmpregadoService empregadoService;
+    @Mock
+    private EmpregadoRepository empregadoRepository;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Mock
+    private ModelMapper modelMapper;
 
     @Test
-    void testGetAll_Success() throws Exception {
-        EmpregadoDto dto = new EmpregadoDto();
-        dto.setNrEmpregado(1);
-        dto.setNmEmpregado("João");
+    public void findAllSuccessTest() {
+        Empregado emp1 = Empregado.builder().nrEmpregado(1).build();
+        Empregado emp2 = Empregado.builder().nrEmpregado(2).build();
 
-        when(empregadoService.findAll()).thenReturn(List.of(dto));
+        EmpregadoDto dto1 = EmpregadoDto.builder().nrEmpregado(1).build();
+        EmpregadoDto dto2 = EmpregadoDto.builder().nrEmpregado(2).build();
 
-        mockMvc.perform(get("/empregado/all"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].nrEmpregado").value(1))
-                .andExpect(jsonPath("$[0].nmEmpregado").value("João"));
+        when(empregadoRepository.findAll()).thenReturn(Arrays.asList(emp1, emp2));
+        when(modelMapper.map(emp1, EmpregadoDto.class)).thenReturn(dto1);
+        when(modelMapper.map(emp2, EmpregadoDto.class)).thenReturn(dto2);
+
+        ResponseEntity response = empregadoController.findAll();
+
+        assertEquals(OK, response.getStatusCode());
+        assertEquals(2, ((List<EmpregadoDto>) response.getBody()).size());
     }
 
     @Test
-    void testGetAll_NotFound() throws Exception {
-        when(empregadoService.findAll()).thenReturn(List.of());
-
-        mockMvc.perform(get("/empregado/all"))
-                .andExpect(status().isNotFound());
+    public void findAllExceptionTest() {
+        when(empregadoRepository.findAll()).thenThrow(new RuntimeException());
+        ResponseEntity response = empregadoController.findAll();
+        assertEquals(INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     @Test
-    void testFindById_Success() throws Exception {
-        EmpregadoDto dto = new EmpregadoDto();
-        dto.setNrEmpregado(1);
-        dto.setNmEmpregado("Maria");
+    public void createSuccessTest() {
+        EmpregadoDto dto = EmpregadoDto.builder().nrEmpregado(1).nmEmpregado("Ana").build();
+        Empregado emp = Empregado.builder().nrEmpregado(1).nmEmpregado("Ana").build();
 
-        when(empregadoService.findById(1)).thenReturn(dto);
+        when(modelMapper.map(dto, Empregado.class)).thenReturn(emp);
 
-        mockMvc.perform(get("/empregado/findById")
-                        .param("nrEmpregado", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nrEmpregado").value(1))
-                .andExpect(jsonPath("$.nmEmpregado").value("Maria"));
+        ResponseEntity response = empregadoController.create(dto);
+
+        assertEquals(OK, response.getStatusCode());
+        assertEquals(dto, response.getBody());
+        verify(empregadoRepository).save(emp);
     }
 
     @Test
-    void testFindById_NotFound() throws Exception {
-        when(empregadoService.findById(1)).thenReturn(null);
+    public void updateSuccessTest() {
+        EmpregadoDto dto = EmpregadoDto.builder()
+                                       .nrEmpregado(10)
+                                       .nmEmpregado("Maria")
+                                       .dsCargo("Dev")
+                                       .vlSalario(new BigDecimal("3000"))
+                                       .dtAdmissao(new Date())
+                                       .build();
 
-        mockMvc.perform(get("/empregado/findById")
-                        .param("nrEmpregado", "1"))
-                .andExpect(status().isNotFound());
+        Empregado emp = Empregado.builder().nrEmpregado(10).nmEmpregado("Maria").build();
+
+        when(empregadoRepository.findByNrEmpregado(10)).thenReturn(Optional.of(emp));
+        when(modelMapper.map(emp, Empregado.class)).thenReturn(emp);
+
+        ResponseEntity response = empregadoController.update(dto);
+
+        assertEquals(OK, response.getStatusCode());
+        assertEquals(dto, response.getBody());
+        verify(empregadoRepository).save(any());
     }
 
     @Test
-    void testDeleteById_Success() throws Exception {
-        doNothing().when(empregadoService).deleteById(1);
+    public void readSuccessTest() {
+        Integer nr = 5;
+        Empregado emp = Empregado.builder().nrEmpregado(nr).nmEmpregado("Carlos").build();
+        EmpregadoDto dto = EmpregadoDto.builder().nrEmpregado(nr).nmEmpregado("Carlos").build();
 
-        mockMvc.perform(delete("/empregado/deleteById")
-                        .param("nrEmpregado", "1"))
-                .andExpect(status().isAccepted());
+        when(empregadoRepository.findByNrEmpregado(nr)).thenReturn(Optional.of(emp));
+        when(modelMapper.map(emp, EmpregadoDto.class)).thenReturn(dto);
 
-        verify(empregadoService, times(1)).deleteById(1);
-    }
+        ResponseEntity response = empregadoController.read(nr);
 
-    @Disabled
-    @Test
-    void testReplaceById_Success() throws Exception {
-        EmpregadoDto dto = new EmpregadoDto();
-        dto.setNrEmpregado(1);
-        dto.setNmEmpregado("Carlos");
-
-        when(empregadoService.findById(1)).thenReturn(dto);
-        doNothing().when(empregadoService).replaceById(any(EmpregadoDto.class));
-
-        mockMvc.perform(patch("/empregado/replaceById")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nrEmpregado").value(1))
-                .andExpect(jsonPath("$.nmEmpregado").value("Carlos"));
+        assertEquals(OK, response.getStatusCode());
+        assertEquals(dto, response.getBody());
     }
 
     @Test
-    void testReplaceById_NotFound() throws Exception {
-        EmpregadoDto dto = new EmpregadoDto();
-        dto.setNrEmpregado(1);
-
-        when(empregadoService.findById(1)).thenReturn(null);
-
-        mockMvc.perform(patch("/empregado/replaceById")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isNotFound());
+    public void readNotFoundTest() {
+        when(empregadoRepository.findByNrEmpregado(1)).thenReturn(Optional.empty());
+        ResponseEntity response = empregadoController.read(1);
+        assertEquals(NOT_FOUND, response.getStatusCode());
     }
 
-    @Disabled
     @Test
-    void testInsert_Success() throws Exception {
-        EmpregadoDto dto = new EmpregadoDto();
-        dto.setNrEmpregado(2);
-        dto.setNmEmpregado("Ana");
+    public void deleteSuccessTest() {
+        Integer nr = 9;
+        Empregado emp = Empregado.builder().nrEmpregado(nr).build();
 
-        doNothing().when(empregadoService).insert(any(EmpregadoDto.class));
+        when(empregadoRepository.findByNrEmpregado(nr)).thenReturn(Optional.of(emp));
 
-        mockMvc.perform(put("/empregado/insert")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.nrEmpregado").value(2))
-                .andExpect(jsonPath("$.nmEmpregado").value("Ana"));
+        ResponseEntity response = empregadoController.delete(nr);
+
+        assertEquals(OK, response.getStatusCode());
+        verify(empregadoRepository).deleteByNrEmpregado(nr);
     }
+
+    @Test
+    public void deleteNotFoundTest() {
+        when(empregadoRepository.findByNrEmpregado(1)).thenReturn(Optional.empty());
+        ResponseEntity response = empregadoController.delete(1);
+        assertEquals(NOT_FOUND, response.getStatusCode());
+    }
+
 }

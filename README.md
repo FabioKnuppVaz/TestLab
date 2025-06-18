@@ -11,7 +11,7 @@ docker-compose -f docker-compose.yml up -d
 docker build -t testlab-image -f Dockerfile .
 
 ## Rodar o sonar com Jacoco
-mvn clean test verify sonar:sonar ^  
+mvn verify sonar:sonar ^  
 -Dsonar.projectKey=TestLab ^  
 -Dsonar.projectName='TestLab' ^  
 -Dsonar.host.url=http://localhost:9000 ^  

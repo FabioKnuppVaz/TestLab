@@ -4,16 +4,21 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Empregado {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	Integer nrEmpregado;
 	String nmEmpregado;
 	Integer nrGerente;
