@@ -1,0 +1,4 @@
+br\com\testlab\entities\Empregado.class
+br\com\testlab\entities\Depto$DeptoBuilder.class
+br\com\testlab\entities\Depto.class
+br\com\testlab\entities\Empregado$EmpregadoBuilder.class

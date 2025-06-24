@@ -1,0 +1,8 @@
+br\com\testlab\usecases\DeptoAtualizar.class
+br\com\testlab\usecases\DeptoBuscar.class
+br\com\testlab\usecases\EmpregadoBuscarTodos.class
+br\com\testlab\usecases\DeptoBuscarTodos.class
+br\com\testlab\usecases\EmpregadoBuscar.class
+br\com\testlab\usecases\EmpregadoDeletar.class
+br\com\testlab\usecases\DeptoDeletar.class
+br\com\testlab\usecases\EmpregadoAtualizar.class

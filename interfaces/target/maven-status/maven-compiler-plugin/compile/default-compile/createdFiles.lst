@@ -1,0 +1,6 @@
+br\com\testlab\dto\EmpregadoDto$EmpregadoDtoBuilder.class
+br\com\testlab\dto\DeptoDto$DeptoDtoBuilder.class
+br\com\testlab\controllers\DeptoController.class
+br\com\testlab\controllers\EmpregadoController.class
+br\com\testlab\dto\DeptoDto.class
+br\com\testlab\dto\EmpregadoDto.class
