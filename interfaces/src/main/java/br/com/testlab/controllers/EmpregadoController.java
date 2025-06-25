@@ -1,7 +1,7 @@
 package br.com.testlab.controllers;
 
 import br.com.testlab.dto.EmpregadoDto;
-import br.com.testlab.usecases.*;
+import br.com.testlab.usecases.empregado.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
